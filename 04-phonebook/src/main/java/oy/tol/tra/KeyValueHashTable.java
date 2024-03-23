@@ -22,7 +22,7 @@ public class KeyValueHashTable<K extends Comparable<K>, V> implements Dictionary
 
     @Override
     public Type getType() {
-        return Type.NONE;
+        return Type.HASHTABLE;
     }
 
     @SuppressWarnings("unchecked")
@@ -42,7 +42,7 @@ public class KeyValueHashTable<K extends Comparable<K>, V> implements Dictionary
     @Override
     public int size() {
         // TODO: Implement this.
-        return 0;
+        return count;
     }
 
     /**
@@ -70,7 +70,9 @@ public class KeyValueHashTable<K extends Comparable<K>, V> implements Dictionary
 
     @Override
     public boolean add(K key, V value) throws IllegalArgumentException, OutOfMemoryError {
-        // TODO: Implement this.
+        if(key==null||value==null){
+            throw new IllegalArgumentException("the key can not be null");
+        }
         // Remeber to check for null values.
 
         // Checks if the LOAD_FACTOR has been exceeded --> if so, reallocates to a bigger hashtable.
@@ -82,17 +84,50 @@ public class KeyValueHashTable<K extends Comparable<K>, V> implements Dictionary
         // if index was taken by different Person (collision), get new hash and index,
         // insert into table when the index has a null in it,
         // return true if existing Person updated or new Person inserted.
-        
-        return false;
+        int hash=key.hashCode();
+        int index=hash%values.length;
+        if(index<0){
+            index+=values.length;
+        }
+        int tmpIndex;
+        for(int i=0;;i++){
+            tmpIndex=(index+i*i)%values.length;
+            if(values[tmpIndex]==null){
+                values[tmpIndex]=new Pair<K,V>(key, value);
+                count++;
+                return true;
+            }else if(values[tmpIndex].getKey().equals(key)){
+                values[tmpIndex].setValue(value);
+                return true;
+            }
+            collisionCount++;
+            if(i>maxProbingSteps){
+                maxProbingSteps=i;
+            }
+        }
     }
 
     @Override
     public V find(K key) throws IllegalArgumentException {
         // Remember to check for null.
-
         // Must use same method for computing index as add method
-        
-        return null;
+        if(key==null){
+            throw new IllegalArgumentException("the key cannot be null");
+        }
+        int hash=key.hashCode();
+        int index=hash%values.length;
+        if(index<0){
+            index+=values.length;
+        }
+        int tmpIndex;
+        for(int i=0;;i++){
+            tmpIndex=(index+i*i)%values.length;
+            if(values[tmpIndex]==null){
+                return null;
+            }else if(values[tmpIndex].getKey().equals(key)){
+                return values[tmpIndex].getValue();
+            }
+        }
     }
 
     @Override
