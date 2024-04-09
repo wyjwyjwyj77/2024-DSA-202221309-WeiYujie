@@ -3,21 +3,30 @@ package oy.tol.tra;
 public class QueueImplementation<E> implements QueueInterface<E>{
     private Object [] itemArray;
     private int capacity;
-    private int size = 0;
-    private int front = 0;
-    private int rear = -1;
-    private static final int DEFAULT_QUEUE_SIZE = 10;
+    private int currentSize = 0;
+    private int head = 0;
+    private int tail = -1;
+    private static final int DEFAULT_STACK_SIZE = 10;
 
+    /**
+     * Allocates a queue with a default capacity.
+     * @throws QueueAllocationException
+     */
     public QueueImplementation() throws QueueAllocationException {
-        this(DEFAULT_QUEUE_SIZE);
+        capacity=DEFAULT_STACK_SIZE;
+        itemArray=new Object[DEFAULT_STACK_SIZE];
      }
 
+    /** 
+     * @param capacity The capacity of the queue.
+     * @throws QueueAllocationException If cannot allocate room for the internal array.
+     */
     public QueueImplementation(int capacity) throws QueueAllocationException {
         if(capacity<2){ 
-            throw new QueueAllocationException("Capacity must be at least 2.");
-         }else{
+            throw new QueueAllocationException("Capacity is too small!");
+         }
+         this.capacity=capacity;
          itemArray=new Object[capacity];
-         this.capacity=capacity;}
      }
 
     @Override
@@ -27,35 +36,36 @@ public class QueueImplementation<E> implements QueueInterface<E>{
 
     @Override
     public void enqueue(E element) throws QueueAllocationException, NullPointerException {
-        if(size==capacity){
+        if(currentSize==capacity){
             Object[] tmp=new Object[this.capacity*2+1];
-            int indexOfItemArray=front;
+            int indexOfItemArray=head;
             int indexOfTmp=0;
-            int loopTime=size;
+            int loopTime=currentSize;
             while(loopTime-->0){
                 tmp[indexOfTmp++]=itemArray[indexOfItemArray];
                 indexOfItemArray=(indexOfItemArray+1)%capacity;
             }
-            front=0;
-            rear=indexOfTmp-1;
+            head=0;
+            tail=indexOfTmp-1;
             itemArray=tmp;
             tmp=null;
             capacity=capacity*2+1;
          }
-        else if(element==null){
+        if(element==null){
            throw new NullPointerException();
         }
-        rear=(rear+1)%capacity;
-        itemArray[rear]=element;
-        size++;        
+        tail=(tail+1)%capacity;
+        itemArray[tail]=element;
+        currentSize++;        
     }
 
 
     @Override
     public E dequeue() throws QueueIsEmptyException {
         E returnE =element();
-        front=(front+1)%capacity;
-        size--;
+        itemArray[head]=null;
+        head=(head+1)%capacity;
+        currentSize--;
         return returnE;
     }
 
@@ -64,39 +74,39 @@ public class QueueImplementation<E> implements QueueInterface<E>{
     public E element() throws QueueIsEmptyException {
         if(isEmpty()){
             throw new QueueIsEmptyException("Queue is empty");
-        }else{
-        return (E)itemArray[front];}
+        }
+        return (E)itemArray[head];
     }
 
     @Override
     public int size() {
-       return size;
+       return currentSize;
+    }
+ 
+    @Override
+    public boolean isEmpty() {
+       return currentSize==0;
     }
   
     @Override
     public void clear() {
-       front=0;
-       rear=-1;
-       size=0;
-    }
-
-    @Override
-    public boolean isEmpty() {
-       return size==0;
+       head=0;
+       tail=-1;
+       currentSize=0;
+       itemArray=new Object[capacity];
     }
 
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder("[");
-        if (!isEmpty()) {
-            int index = front;
-            do {
-                builder.append(itemArray[index].toString());
-                if (index != rear) {
-                    builder.append(", ");
-                }
-                index = (index + 1) % capacity;
-            } while (index != (rear + 1) % capacity);
+        int indexOfItemArray=head;
+        int loopTime=currentSize;
+        while(loopTime-->0){
+            builder.append(itemArray[indexOfItemArray].toString());
+            indexOfItemArray=(indexOfItemArray+1)%capacity;
+            if(loopTime!=0){
+                builder.append(", ");
+            }
         }
         builder.append("]");
         return builder.toString();
